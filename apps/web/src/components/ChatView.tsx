@@ -3147,7 +3147,7 @@ export default function ChatView(props: ChatViewProps) {
   const content = (
     <div
       ref={setWorkspaceLayoutElement}
-      className="relative flex min-h-0 min-w-0 flex-1 overflow-hidden bg-background"
+      className="relative flex min-h-0 min-w-0 flex-1 overflow-hidden bg-background orb-glass:bg-transparent"
     >
       <DeviceSetupDialogHost
         threadKey={activeThreadKey}
@@ -3177,6 +3177,7 @@ export default function ChatView(props: ChatViewProps) {
                 )
               : "flex h-[var(--workspace-topbar-height)] min-h-[var(--workspace-topbar-height)] shrink-0 items-center pl-(--workspace-gutter-start) pr-(--workspace-gutter-end)",
             COLLAPSED_SIDEBAR_TITLEBAR_INSET_CLASS,
+            "orb-glass:orb-glass-toolbar",
           )}
         >
           {isElectron && rightPanelControlsAtRoot ? (

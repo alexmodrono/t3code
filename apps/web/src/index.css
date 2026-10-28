@@ -1,7 +1,9 @@
 @import "tailwindcss";
+@import "./orbGlass.css";
 
 @custom-variant dark (&:is(.dark, .dark *));
 @custom-variant light (&:not(.dark, .dark *));
+@custom-variant orb-glass (&:where([data-theme-id="orb-inspired"] *));
 /* Window Controls Overlay: active when Electron exposes native titlebar control geometry. */
 @custom-variant wco (&:is(.wco, .wco *));
 /* Beta "New design" (Settings -> Beta) sets data-redesign on <html>. The variant adds no

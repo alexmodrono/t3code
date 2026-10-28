@@ -20,6 +20,7 @@ export function WorkspacePageHeader({
         reserveNativeControls && "wco:pr-(--workspace-native-controls-inset)",
         COLLAPSED_SIDEBAR_TITLEBAR_INSET_CLASS,
         className,
+        "orb-glass:orb-glass-toolbar",
       )}
       {...props}
     />
