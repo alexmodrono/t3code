@@ -1,3 +1,4 @@
+import { BUILT_IN_THEMES, RESERVED_THEME_IDS } from "./builtInThemes";
 import type { EnvironmentTheme } from "@t3tools/contracts";
 import * as Equal from "effect/Equal";
 import * as Option from "effect/Option";
@@ -6,7 +7,6 @@ import { Atom } from "effect/reactivity";
 import "culori/css";
 import { converter, parse } from "culori/fn";
 import {
-  BUILT_IN_THEMES,
   EMBER_THEME,
   GROVE_THEME,
   IRIS_THEME,
@@ -14,7 +14,6 @@ import {
   T3_CHAT_THEME,
   T3_CODE_LIGHT_THEME_COLORS,
   T3_CODE_DARK_THEME_COLORS,
-  RESERVED_THEME_IDS,
   THEME_COLOR_ROLES,
   type ThemeAppearance,
   type ThemeColorRole,

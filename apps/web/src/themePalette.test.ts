@@ -1,8 +1,9 @@
 import { describe, expect, it, vi } from "vite-plus/test";
 import { converter } from "culori/fn";
-import { BUILT_IN_THEMES } from "@t3tools/shared/themePalettes";
+import { BUILT_IN_THEMES } from "./builtInThemes";
 
 import {
+  getThemeDefinition,
   getThemeColorsForMode,
   getThemeModes,
   getCustomThemes,
@@ -57,6 +58,15 @@ function contrastRatio(first: string, second: string): number {
 }
 
 describe("theme files", () => {
+  it("offers Liquid Glass without importing a theme file, in both appearances", () => {
+    const theme = getThemeDefinition("liquid-glass");
+    expect(theme?.label).toBe("Liquid Glass");
+    expect(theme && getThemeModes(theme)).toEqual(["light", "dark"]);
+    expect(resolveThemeAppearance("liquid-glass", true, true)).toBe("dark");
+    expect(resolveThemeAppearance("liquid-glass", true, false)).toBe("light");
+    expect(theme?.sidebarArtwork).toBe(false);
+  });
+
   it("keeps built-in and standard search pairs readable and distinct from inline code", () => {
     const toOklab = converter("oklab");
     const distance = (first: string, second: string) => {

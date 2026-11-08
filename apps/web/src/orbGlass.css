@@ -1,4 +1,4 @@
-html[data-theme-id="orb-inspired"] {
+html:is([data-theme-id="orb-inspired"], [data-theme-id="liquid-glass"]) {
   --orb-glass-tint: color-mix(in srgb, var(--sidebar) 64%, transparent);
   --orb-glass-edge: rgb(255 255 255 / 68%);
   --orb-glass-shadow: rgb(30 30 28 / 7%);
@@ -14,8 +14,8 @@ html[data-theme-id="orb-inspired"] {
 }
 
 /* Browser chrome sync writes inline backgrounds; clear only the glass theme. */
-html[data-theme-id="orb-inspired"],
-html[data-theme-id="orb-inspired"] body {
+html:is([data-theme-id="orb-inspired"], [data-theme-id="liquid-glass"]),
+html:is([data-theme-id="orb-inspired"], [data-theme-id="liquid-glass"]) body {
   background-color: transparent !important;
 }
 

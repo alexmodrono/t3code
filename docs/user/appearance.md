@@ -11,6 +11,12 @@ Use **Change appearance** in the command palette to choose System, Light, or Dar
 the theme. **Cmd+Option+Shift+A** on macOS or **Ctrl+Alt+Shift+A** on Windows/Linux cycles through
 those modes. Customize these shortcuts under **Settings → Keybindings**.
 
+Choose **Liquid Glass** in **Settings → Appearance** or the **Change theme** palette
+for translucent sidebar and toolbar surfaces, in light or dark mode. It works with
+flat, project, and worktree sidebar views. On macOS desktop, the window also uses
+the system backdrop. Reduced transparency or increased contrast uses solid surfaces.
+Choose another theme to return to an opaque layout.
+
 On mobile, open **Settings → Appearance**. Mobile has its own themes and text,
 code, and terminal preferences. It does not follow environment themes or defaults.
 
