@@ -512,6 +512,7 @@ function ProjectDetail({
             }
           />
           <SettingsRow
+            id="project-icon"
             title="Project icon"
             description={
               projectIcon?.kind === "lucide"

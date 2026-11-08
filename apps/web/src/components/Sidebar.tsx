@@ -1077,20 +1077,23 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
   });
 
   const openProjectSettings = useStableCallback(
-    (projectGroup: SidebarProjectSnapshot, projectRef?: ScopedProjectRef) => {
+    (projectGroup: SidebarProjectSnapshot, projectRef?: ScopedProjectRef, hash?: string) => {
       if (isMobile) {
         setOpenMobile(false);
       }
       void router.navigate({
-        to: "/projects/$projectKey",
-        params: {
-          projectKey: getSidebarProjectSettingsKey(
+        to: "/settings/projects",
+        search: {
+          project: getSidebarProjectSettingsKey(
             projectGroup,
             projectGroupingSettings,
             projects,
             projectRef,
           ),
+          machine: undefined,
+          checkout: undefined,
         },
+        hash: hash ?? "",
       });
     },
   );
@@ -3172,6 +3175,9 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
                       ) => {
                         const key = sidebarGroupKey(section, group.key);
                         const expanded = !collapsedGroups.has(key);
+                        const project = worktree
+                          ? undefined
+                          : projectGroupByScopeKey.get(group.key);
                         items.push(
                           <SidebarThreadGroupHeader
                             key={key}
@@ -3180,6 +3186,12 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
                             count={group.threads.length}
                             expanded={expanded}
                             worktree={worktree}
+                            project={project}
+                            onCustomize={
+                              project
+                                ? () => openProjectSettings(project, undefined, "project-icon")
+                                : undefined
+                            }
                             onToggle={() => toggleThreadGroup(key)}
                           />,
                         );

@@ -52,6 +52,13 @@ across environments; worktrees stay separate for each machine and checkout.
 Threads sharing a worktree appear together, including threads using different providers.
 The main checkout has its own group.
 
+To customize a project folder, click the palette button beside its heading, then
+**Choose icon** in Project Settings. Pick an icon and color, an emoji, or a monogram.
+**Choose file** uses your own image. The choice also appears on the project's thread
+rows and other connected clients. Use the reset button beside **Project icon** to
+return to the automatic appearance. For a grouped repository, the change applies to
+its member projects; their environments must be connected and allow project changes.
+
 Expand or collapse a project or worktree with its heading. Keyboard thread shortcuts
 follow the visible order. Opening a thread from search or a link reveals its group.
 Pinned, working, snoozed, and settled threads keep their respective sections.
