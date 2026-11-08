@@ -410,6 +410,18 @@ export const SETTINGS_SEARCH_ITEMS = [
     searchTerms: ["redesign look style sidebar composer black quieter classic"],
   },
   {
+    id: "sidebar-thread-grouping",
+    title: "Group threads",
+    to: "/settings/general",
+    searchTerms: ["sidebar project worktree folders flat organize"],
+  },
+  {
+    id: "sidebar-title-first",
+    title: "Title-first threads",
+    to: "/settings/general",
+    searchTerms: ["sidebar title layout metadata compact responsive"],
+  },
+  {
     id: "working-shelf",
     title: "Working section",
     to: "/settings/general",

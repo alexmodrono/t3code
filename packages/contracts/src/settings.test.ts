@@ -27,6 +27,24 @@ const decodeServerSettingsPatch = Schema.decodeUnknownSync(ServerSettingsPatch);
 const encodeServerSettings = Schema.encodeSync(ServerSettings);
 const decodeClaudeSettings = Schema.decodeUnknownSync(ClaudeSettings);
 
+describe("sidebar presentation settings", () => {
+  it("defaults older preferences to project groups and title-first rows", () => {
+    const settings = decodeClientSettings({});
+    expect(settings.sidebarThreadGrouping).toBe("project");
+    expect(settings.sidebarTitleFirst).toBe(true);
+  });
+
+  it("persists a grouping choice and lets users restore the flat project-first layout", () => {
+    for (const sidebarThreadGrouping of ["flat", "project", "worktree"] as const) {
+      const patch = decodeClientSettingsPatch({ sidebarThreadGrouping, sidebarTitleFirst: false });
+      const settings = decodeClientSettings(encodeClientSettings(decodeClientSettings(patch)));
+      expect(settings.sidebarThreadGrouping).toBe(sidebarThreadGrouping);
+      expect(settings.sidebarTitleFirst).toBe(false);
+    }
+    expect(() => decodeClientSettingsPatch({ sidebarThreadGrouping: "branch" })).toThrow();
+  });
+});
+
 describe("storage cleanup settings", () => {
   it("keeps cleanup disabled for existing installations", () => {
     expect(decodeServerSettings({}).worktreeCleanup).toBeNull();

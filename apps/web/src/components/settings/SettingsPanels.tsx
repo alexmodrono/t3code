@@ -436,6 +436,12 @@ export function useSettingsRestore(onRestored?: () => void) {
     ...(settings.sidebarProjectSortOrder !== DEFAULT_UNIFIED_SETTINGS.sidebarProjectSortOrder
       ? ["Project order"]
       : []),
+    ...(settings.sidebarThreadGrouping !== DEFAULT_UNIFIED_SETTINGS.sidebarThreadGrouping
+      ? ["Group threads"]
+      : []),
+    ...(settings.sidebarTitleFirst !== DEFAULT_UNIFIED_SETTINGS.sidebarTitleFirst
+      ? ["Title-first threads"]
+      : []),
     ...(settings.sidebarWorkingShelfEnabled !== DEFAULT_UNIFIED_SETTINGS.sidebarWorkingShelfEnabled
       ? ["Working section"]
       : []),
@@ -606,6 +612,8 @@ export function useSettingsRestore(onRestored?: () => void) {
       sidebarThreadPreviewCount: DEFAULT_UNIFIED_SETTINGS.sidebarThreadPreviewCount,
       sidebarProjectGroupingMode: DEFAULT_UNIFIED_SETTINGS.sidebarProjectGroupingMode,
       sidebarProjectSortOrder: DEFAULT_UNIFIED_SETTINGS.sidebarProjectSortOrder,
+      sidebarThreadGrouping: DEFAULT_UNIFIED_SETTINGS.sidebarThreadGrouping,
+      sidebarTitleFirst: DEFAULT_UNIFIED_SETTINGS.sidebarTitleFirst,
       sidebarWorkingShelfEnabled: DEFAULT_UNIFIED_SETTINGS.sidebarWorkingShelfEnabled,
       sidebarAutoSettleAfterDays: DEFAULT_UNIFIED_SETTINGS.sidebarAutoSettleAfterDays,
       sidebarAutoSettleKeepPullRequests: DEFAULT_UNIFIED_SETTINGS.sidebarAutoSettleKeepPullRequests,
@@ -733,7 +741,7 @@ export function LegacyFeaturesSection() {
       />
       <SettingsRow
         {...searchableSetting("legacy-sidebar")}
-        description="Restore per-project thread trees instead of the default flat sidebar."
+        description="Restore the older per-project sidebar. Disable this to use title-first rows and worktree grouping."
         control={
           <Switch
             checked={settings.legacySidebarEnabled}
@@ -846,6 +854,42 @@ export function GeneralSettingsPanel() {
                 ))}
               </SelectPopup>
             </Select>
+          }
+        />
+        <SettingsRow
+          {...searchableSetting("sidebar-thread-grouping")}
+          description="Organize the desktop and web sidebar by project or by project and worktree. Use Flat to drag threads into a custom order."
+          control={
+            <Select
+              value={settings.sidebarThreadGrouping}
+              onValueChange={(value) => {
+                if (value === "flat" || value === "project" || value === "worktree") {
+                  updateSettings({ sidebarThreadGrouping: value, legacySidebarEnabled: false });
+                }
+              }}
+            >
+              <SelectTrigger size="sm" className="w-full sm:w-44" aria-label="Group threads">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectPopup align="end" alignItemWithTrigger={false}>
+                <SelectItem value="flat">Flat</SelectItem>
+                <SelectItem value="project">Project</SelectItem>
+                <SelectItem value="worktree">Project and worktree</SelectItem>
+              </SelectPopup>
+            </Select>
+          }
+        />
+        <SettingsRow
+          {...searchableSetting("sidebar-title-first")}
+          description="Show the thread title first, with project, branch, and provider details underneath."
+          control={
+            <Switch
+              checked={settings.sidebarTitleFirst}
+              onCheckedChange={(checked) =>
+                updateSettings({ sidebarTitleFirst: Boolean(checked), legacySidebarEnabled: false })
+              }
+              aria-label="Title-first threads"
+            />
           }
         />
         <SettingsRow

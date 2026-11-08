@@ -513,6 +513,8 @@ const dropVerbBadge: Record<SidebarDropVerb, ReactNode> = {
 type SidebarThreadRowProps = {
   thread: SidebarThreadSummary;
   variant: "card" | "slim";
+  titleFirst?: boolean;
+  grouped?: boolean;
   variantAction: SidebarSweepAction;
   settlementSupported: boolean;
   snoozeSupported: boolean;
@@ -1099,6 +1101,7 @@ const SidebarThreadRow = memo(function SidebarThreadRow(props: SidebarThreadRowP
         {...(fileDropHandlers ?? {})}
         className={cn(
           "list-none [content-visibility:auto] [contain-intrinsic-size:auto_36px]",
+          props.grouped && "ml-4 border-l border-sidebar-border pl-1",
           sortable?.isDragging && "relative z-20",
         )}
       >
@@ -1269,6 +1272,7 @@ const SidebarThreadRow = memo(function SidebarThreadRow(props: SidebarThreadRowP
       {...(fileDropHandlers ?? {})}
       className={cn(
         "list-none py-0.5 [content-visibility:auto] [contain-intrinsic-size:auto_78px]",
+        props.grouped && "ml-4 border-l border-sidebar-border pl-1",
         metaLineEmpty && "redesign:[contain-intrinsic-size:auto_58px]",
         sortable?.isDragging && "relative z-20",
       )}
@@ -1295,19 +1299,20 @@ const SidebarThreadRow = memo(function SidebarThreadRow(props: SidebarThreadRowP
           {accessibleTitle}
           <div
             className={cn(
-              "relative z-10 h-[4.875rem] px-(--sidebar-row-content-inset) py-(--sidebar-content-inset)",
+              "relative z-10 px-(--sidebar-row-content-inset) py-(--sidebar-content-inset)",
+              props.titleFirst ? "flex flex-wrap items-center gap-x-2" : "h-[4.875rem]",
               metaLineEmpty && "redesign:h-auto",
             )}
           >
-            <div className="flex h-5 min-w-0 items-center gap-1.5">
+            <div className="flex h-5 w-full min-w-0 items-center gap-1.5">
               {draftIndicator}
-              {props.project ? (
+              {!props.titleFirst && props.project ? (
                 <ProjectFavicon project={props.project} className="size-4 shrink-0" />
               ) : null}
-              {/* Left of the status slot, the pin would slide when hover swaps the
-                label for the wider row controls. */}
               {pinIndicator}
-              {props.projectDisplayName ? (
+              {props.titleFirst ? (
+                title
+              ) : props.projectDisplayName ? (
                 <span
                   className={cn(
                     "min-w-0 flex-1 truncate text-secondary-label text-xs",
@@ -1383,7 +1388,9 @@ const SidebarThreadRow = memo(function SidebarThreadRow(props: SidebarThreadRowP
                           {/* Not a live region: a collapsed sidebar is inert, so
                             BackgroundThreadAnnouncer and the open thread's
                             timeline speak status changes instead. */}
-                          {topStatus.label}
+                          <span className={cn(props.titleFirst && "sr-only")}>
+                            {topStatus.label}
+                          </span>
                           {status === "working" ? (
                             <span aria-hidden>
                               <WorkingDuration startedAt={resolveWorkingStartedAt(thread)} />
@@ -1458,14 +1465,28 @@ const SidebarThreadRow = memo(function SidebarThreadRow(props: SidebarThreadRowP
               )}
               {props.sweepAction !== null ? dragDestination : null}
             </div>
-            <div className="mt-1 flex min-w-0 items-center gap-1.5">
-              {title}
+            <div
+              className={cn(
+                "mt-1 flex min-w-0 items-center gap-1.5",
+                props.titleFirst && "max-w-full text-xs text-secondary-label",
+              )}
+            >
+              {props.titleFirst ? (
+                <>
+                  {props.project ? (
+                    <ProjectFavicon project={props.project} className="size-3.5 shrink-0" />
+                  ) : null}
+                  <span className="truncate">{props.projectDisplayName}</span>
+                </>
+              ) : (
+                title
+              )}
               {isRegeneratingTitle ? (
                 <span role="status" className="sr-only">
                   Regenerating title
                 </span>
               ) : null}
-              {metaLineEmpty ? (
+              {metaLineEmpty && !props.titleFirst ? (
                 <span aria-hidden className="hidden shrink-0 redesign:inline-flex">
                   <SidebarProviderStack
                     thread={thread}
@@ -1477,7 +1498,7 @@ const SidebarThreadRow = memo(function SidebarThreadRow(props: SidebarThreadRowP
             <div
               className={cn(
                 "mt-0.5 flex min-w-0 items-center gap-1.5 text-secondary-label text-xs",
-                metaLineEmpty && "redesign:hidden",
+                props.titleFirst ? "min-w-0 basis-40 grow" : metaLineEmpty && "redesign:hidden",
               )}
             >
               {thread.branch ? (
@@ -1525,6 +1546,9 @@ const SidebarThreadRow = memo(function SidebarThreadRow(props: SidebarThreadRowP
                       className="size-3.5"
                     />
                   </span>
+                ) : null}
+                {props.grouped ? (
+                  <span className="max-w-24 truncate text-2xs">{modelLabel}</span>
                 ) : null}
                 <SidebarProviderStack
                   thread={thread}

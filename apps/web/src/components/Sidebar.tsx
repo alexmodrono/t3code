@@ -1,3 +1,11 @@
+import {
+  groupSidebarThreads,
+  sidebarGroupKey,
+  visibleGroupedThreads,
+  type SidebarThreadGroup,
+} from "./sidebar/threadGrouping";
+import { SidebarThreadGroupHeader } from "./sidebar/SidebarThreadGroupHeader";
+import { SidebarViewMenu } from "./sidebar/SidebarViewMenu";
 import { type EnvironmentId, type ScopedProjectRef } from "@t3tools/contracts";
 import type { EnvironmentServerConfig } from "@t3tools/client-runtime/connection";
 import { ThreadContextDragGhost } from "./chat/ThreadContextDragGhost";
@@ -797,6 +805,8 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
   const confirmThreadDelete = useClientSettings((s) => s.confirmThreadDelete);
   const confirmThreadArchive = useClientSettings((s) => s.confirmThreadArchive);
   const timestampFormat = useClientSettings((s) => s.timestampFormat);
+  const threadGrouping = useClientSettings((s) => s.sidebarThreadGrouping);
+  const titleFirst = useClientSettings((s) => s.sidebarTitleFirst);
   const projectGroupingSettings = useClientSettings(selectProjectGroupingSettings);
   const {
     settleThread,
@@ -1122,7 +1132,7 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
     renderedSettledThreads,
     visibleSnoozedThreads,
     visibleWorkingThreads,
-    orderedThreadKeys,
+    orderedThreadKeys: flatOrderedThreadKeys,
     threadByKey,
     settledThreadKeys,
     snoozedThreadKeys,
@@ -1139,6 +1149,84 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
     threads,
     routeRowThreadKey,
   });
+
+  const logicalProjectByPhysicalKey = new Map(
+    projectGroups.flatMap((group) =>
+      group.memberProjects.map(
+        (project) =>
+          [
+            `${project.environmentId}:${project.id}`,
+            { key: group.projectKey, label: group.displayName },
+          ] as const,
+      ),
+    ),
+  );
+  const groupsBySection = new Map<SidebarSection, SidebarThreadGroup<EnvironmentThreadShell>[]>();
+  if (threadGrouping !== "flat") {
+    const threadsBySection = new Map<SidebarSection, EnvironmentThreadShell[]>();
+    for (const key of flatOrderedThreadKeys) {
+      const section = sectionByThreadKey.get(key);
+      const thread = threadByKey.get(key);
+      if (!section || !thread) continue;
+      const sectionThreads = threadsBySection.get(section) ?? [];
+      sectionThreads.push(thread);
+      threadsBySection.set(section, sectionThreads);
+    }
+    for (const [section, sectionThreads] of threadsBySection) {
+      groupsBySection.set(
+        section,
+        groupSidebarThreads(
+          sectionThreads,
+          (thread) => {
+            const key = `${thread.environmentId}:${thread.projectId}` as const;
+            return logicalProjectByPhysicalKey.get(key) ?? { key, label: "Unknown project" };
+          },
+          (id) => environmentLabelById.get(id as EnvironmentId) ?? id,
+        ),
+      );
+    }
+  }
+  const groupRevealKey = JSON.stringify([
+    routeRowThreadKey,
+    threadGrouping,
+    routeRowThreadKey ? sectionByThreadKey.get(routeRowThreadKey) : null,
+  ]);
+  const [groupCollapse, setGroupCollapse] = useState({
+    routeKey: groupRevealKey,
+    keys: new Set<string>(),
+  });
+  let collapsedGroups = groupCollapse.keys;
+  if (groupCollapse.routeKey !== groupRevealKey) {
+    collapsedGroups = new Set(groupCollapse.keys);
+    for (const [section, groups] of groupsBySection) {
+      for (const group of groups) {
+        if (!group.threads.some((thread) => threadShellKey(thread) === routeRowThreadKey)) continue;
+        collapsedGroups.delete(sidebarGroupKey(section, group.key));
+        for (const worktree of group.worktrees) {
+          if (worktree.threads.some((thread) => threadShellKey(thread) === routeRowThreadKey)) {
+            collapsedGroups.delete(sidebarGroupKey(section, worktree.key));
+          }
+        }
+      }
+    }
+    setGroupCollapse({ routeKey: groupRevealKey, keys: collapsedGroups });
+  }
+  const toggleThreadGroup = (key: string) => {
+    setGroupCollapse((current) => {
+      const keys = new Set(current.keys);
+      if (keys.has(key)) keys.delete(key);
+      else keys.add(key);
+      return { ...current, keys };
+    });
+  };
+  const orderedThreadKeys =
+    threadGrouping === "flat"
+      ? flatOrderedThreadKeys
+      : [...groupsBySection].flatMap(([section, groups]) =>
+          visibleGroupedThreads(groups, threadGrouping, section, collapsedGroups).map(
+            threadShellKey,
+          ),
+        );
 
   // Ranked across environments as the palette ranks them, so one
   // environment's list does not sit above another's better matches; rows
@@ -1759,7 +1847,9 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
     routeDraftIdForRows ?? "",
   ].join("\0");
   const listMotionAnimate =
-    dragState === null && sidebarListItems.length + visibleDraftSessionCount > 0;
+    threadGrouping === "flat" &&
+    dragState === null &&
+    sidebarListItems.length + visibleDraftSessionCount > 0;
   // Cache on both fields so layout-key changes trigger the effect even when animate is unchanged.
   const listMotionPass = { layoutKey: listMotionLayoutKey, animate: listMotionAnimate };
   useLayoutEffect(() => {
@@ -2700,6 +2790,7 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
         fixedHeader={
           <SidebarGroup className="z-[1]">
             <SidebarThreadHeader
+              viewMenu={<SidebarViewMenu />}
               searchFieldRef={headerSearchRef}
               hasProjects={projectGroups.length > 0}
               projectScope={
@@ -2962,12 +3053,15 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
                             sortableId={threadKey}
                             contextDrag={isContextDrag}
                             sortableDisabled={
+                              threadGrouping !== "flat" ||
                               renamingThreadKey === threadKey ||
                               !draggableThreadKeys.has(threadKey) ||
                               optimisticDrop !== null
                             }
                             thread={thread}
                             variant={rowVariant}
+                            titleFirst={titleFirst}
+                            grouped={threadGrouping !== "flat"}
                             variantAction={
                               section === "snoozed"
                                 ? "unsnooze"
@@ -3070,13 +3164,70 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
                           onDraftContextMenu={handleDraftContextMenu}
                         />,
                       ];
+                      const renderedSections = new Set<SidebarSection>();
+                      const renderGroup = (
+                        group: SidebarThreadGroup<EnvironmentThreadShell>,
+                        section: SidebarSection,
+                        worktree = false,
+                      ) => {
+                        const key = sidebarGroupKey(section, group.key);
+                        const expanded = !collapsedGroups.has(key);
+                        items.push(
+                          <SidebarThreadGroupHeader
+                            key={key}
+                            label={group.label}
+                            detail={group.detail}
+                            count={group.threads.length}
+                            expanded={expanded}
+                            worktree={worktree}
+                            onToggle={() => toggleThreadGroup(key)}
+                          />,
+                        );
+                        return expanded;
+                      };
                       for (const item of sidebarListItems) {
                         if (item.kind === "thread") {
-                          items.push(renderThreadRow(threadByKey.get(item.key)!, item.section));
+                          if (threadGrouping === "flat") {
+                            items.push(renderThreadRow(threadByKey.get(item.key)!, item.section));
+                          } else if (!renderedSections.has(item.section)) {
+                            renderedSections.add(item.section);
+                            for (const group of groupsBySection.get(item.section) ?? []) {
+                              if (!renderGroup(group, item.section)) continue;
+                              if (threadGrouping === "project") {
+                                items.push(
+                                  ...group.threads.map((thread) =>
+                                    renderThreadRow(thread, item.section),
+                                  ),
+                                );
+                              } else {
+                                for (const worktree of group.worktrees) {
+                                  if (renderGroup(worktree, item.section, true)) {
+                                    items.push(
+                                      ...worktree.threads.map((thread) =>
+                                        renderThreadRow(thread, item.section),
+                                      ),
+                                    );
+                                  }
+                                }
+                              }
+                            }
+                          }
                           continue;
                         }
                         switch (item.marker) {
                           case "pinned-header":
+                            if (threadGrouping !== "flat") {
+                              if (pinnedThreads.length > 0)
+                                items.push(
+                                  <li
+                                    key="pinned-label"
+                                    className="list-none px-2 pt-2 text-xs text-sidebar-muted-foreground"
+                                  >
+                                    Pinned
+                                  </li>,
+                                );
+                              break;
+                            }
                             items.push(
                               <SidebarDragBoundary
                                 key="pinned-header"
@@ -3088,6 +3239,18 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
                             );
                             break;
                           case "pinned-divider":
+                            if (threadGrouping !== "flat") {
+                              if (pinnedThreads.length > 0 && activeThreads.length > 0)
+                                items.push(
+                                  <li
+                                    key="active-label"
+                                    className="list-none px-2 pt-3 text-xs text-sidebar-muted-foreground"
+                                  >
+                                    Active
+                                  </li>,
+                                );
+                              break;
+                            }
                             items.push(
                               <SidebarDragBoundary
                                 key="pinned-divider"

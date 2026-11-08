@@ -43,6 +43,26 @@ in a new thread's model picker to add or remove them. A regular click returns to
 single model. Choose a base branch and send. Each selection starts a separate thread
 and worktree while you stay in the new thread composer. This requires a Git project.
 
+## Organize the sidebar
+
+On web and desktop, open **Sidebar view** beside the thread search, or use
+**Settings → General → Sidebar**, to choose **Flat**, **Group by project**, or
+**Group by project and worktree**. Project groups can combine matching repositories
+across environments; worktrees stay separate for each machine and checkout.
+Threads sharing a worktree appear together, including threads using different providers.
+The main checkout has its own group.
+
+Expand or collapse a project or worktree with its heading. Keyboard thread shortcuts
+follow the visible order. Opening a thread from search or a link reveals its group.
+Pinned, working, snoozed, and settled threads keep their respective sections.
+Choose **Flat** to drag threads into a custom order; thread menu actions are available
+in every view.
+
+**Title-first threads** puts the title above the project and branch details, which
+wrap as the sidebar narrows. Turn it off to restore project-first rows. Both choices
+are saved on this device. These options use the current sidebar; selecting them in
+Settings also turns off **Sidebar (legacy)**.
+
 ## Pin and reorder threads
 
 Pin a thread from its menu to keep it above your active work.
